@@ -1,0 +1,58 @@
+/* Active Recall Mode Stilleri */
+
+/* Bulanıklaştırılmış, sansürlenmiş metin efekti */
+.recall-blur {
+  filter: blur(6px);
+  user-select: none;
+  transition: all 0.3s ease;
+  background-color: rgba(100, 116, 139, 0.2); /* slate-500/20 */
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-block; /* Satır içi blok davranışı */
+}
+
+.recall-blur:hover {
+  filter: blur(4px);
+  background-color: rgba(100, 116, 139, 0.3);
+}
+
+/* Aktif (Gösterilmiş) durum - normal görünüm */
+.recall-visible {
+  filter: blur(0);
+  background-color: transparent;
+  cursor: default;
+}
+
+/* Formül gizleme kutusu */
+.recall-math-hidden {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f1f5f9; /* slate-100 */
+  border: 2px dashed #cbd5e1; /* slate-300 */
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 600;
+  color: #64748b; /* slate-500 */
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 60px;
+  margin-bottom: 1rem;
+}
+
+.dark .recall-math-hidden {
+  background-color: #1e293b; /* slate-800 */
+  border-color: #334155; /* slate-700 */
+  color: #94a3b8; /* slate-400 */
+}
+
+.recall-math-hidden:hover {
+  transform: scale(1.01);
+  border-color: #3b82f6; /* primary (blue-500 approx) */
+  color: #3b82f6;
+}
+
+.recall-math-hidden::after {
+  content: "👁️ Formülü Hatırla ve Göster";
+}
