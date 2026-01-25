@@ -49,7 +49,7 @@ class ErrorBoundary extends React.Component {
 function App() {
   return (
     <ErrorBoundary>
-      <Router>
+      <Router basename={import.meta.env.BASE_URL}>
         <AppProvider>
           <MainLayout>
             <Routes>
