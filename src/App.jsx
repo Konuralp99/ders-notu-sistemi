@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import MainLayout from './layouts/MainLayout';
 import CoursePage from './pages/CoursePage';
@@ -49,7 +49,7 @@ class ErrorBoundary extends React.Component {
 function App() {
   return (
     <ErrorBoundary>
-      <Router basename={import.meta.env.BASE_URL}>
+      <Router>
         <AppProvider>
           <MainLayout>
             <Routes>
