@@ -11,6 +11,7 @@ export default function NotebookPage() {
     const [strokeWidth, setStrokeWidth] = useState(4);
     const [eraseMode, setEraseMode] = useState(false);
     const [manualEraser, setManualEraser] = useState(false);
+    const [debugInfo, setDebugInfo] = useState(''); // DEBUG STATE
 
     // Canvas ref
     const canvasRef = useRef(null);
@@ -81,6 +82,11 @@ export default function NotebookPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 pb-24 md:p-8">
+            {/* DEBUG OVERLAY */}
+            <div className="fixed bottom-24 left-4 bg-black/80 text-white p-3 rounded text-xs z-[100] font-mono pointer-events-none select-none max-w-[200px] overflow-hidden whitespace-normal break-words">
+                {debugInfo || 'Waiting for pen...'}
+            </div>
+
             {view === 'gallery' ? (
                 <div className="max-w-4xl mx-auto animate-in fade-in">
                     <div className="flex justify-between items-center mb-6">
@@ -186,6 +192,8 @@ export default function NotebookPage() {
                     <div
                         className="flex-1 overflow-hidden relative cursor-crosshair touch-none bg-white"
                         onPointerDownCapture={(e) => {
+                            setDebugInfo(`D: Type=${e.pointerType} But=${e.button} Buts=${e.buttons}`);
+
                             if (e.pointerType === 'touch') {
                                 e.stopPropagation();
                                 e.preventDefault();
@@ -208,6 +216,7 @@ export default function NotebookPage() {
                         }}
                         onPointerMove={(e) => {
                             if (e.pointerType === 'touch') return;
+                            setDebugInfo(`M: Type=${e.pointerType} But=${e.button} Buts=${e.buttons}`);
 
                             const isEraser = e.pointerType === 'eraser' || e.buttons === 32 || (e.buttons & 2) === 2 || (e.buttons & 1 && e.pointerType === 'pen' && e.button === 5);
 
