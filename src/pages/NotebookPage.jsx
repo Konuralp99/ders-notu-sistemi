@@ -191,8 +191,19 @@ export default function NotebookPage() {
 
                     <div
                         className="flex-1 overflow-hidden relative cursor-crosshair touch-none bg-white"
+                        onContextMenu={(e) => {
+                            // HEURISTIC: Handle Right Click (Context Menu) as Eraser Toggle
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDebugInfo(`CTX MENU! But=${e.button}`);
+
+                            // If user triggers context menu, force Toggle ERASER
+                            // This is common behavior for Pen Buttons on Android Web
+                            toggleEraser();
+                        }}
                         onPointerDownCapture={(e) => {
-                            setDebugInfo(`D: Type=${e.pointerType} But=${e.button} Buts=${e.buttons}`);
+                            const mods = `${e.altKey ? 'A' : ''}${e.ctrlKey ? 'C' : ''}${e.shiftKey ? 'S' : ''}`;
+                            setDebugInfo(`D: Type=${e.pointerType} But=${e.button} Buts=${e.buttons} Mods=${mods}`);
 
                             if (e.pointerType === 'touch') {
                                 e.stopPropagation();
@@ -200,6 +211,7 @@ export default function NotebookPage() {
                                 return;
                             }
 
+                            // Legacy Check + Modifiers
                             const isEraser = e.pointerType === 'eraser' || e.buttons === 32 || (e.buttons & 2) === 2 || (e.buttons & 1 && e.pointerType === 'pen' && e.button === 5);
 
                             if (isEraser) {
@@ -216,9 +228,11 @@ export default function NotebookPage() {
                         }}
                         onPointerMove={(e) => {
                             if (e.pointerType === 'touch') return;
-                            setDebugInfo(`M: Type=${e.pointerType} But=${e.button} Buts=${e.buttons}`);
+                            // Just update debug info here, no complex logic change to avoid flicker
+                            const mods = `${e.altKey ? 'A' : ''}${e.ctrlKey ? 'C' : ''}${e.shiftKey ? 'S' : ''}`;
+                            setDebugInfo(`M: Type=${e.pointerType} But=${e.button} Buts=${e.buttons} Mods=${mods}`);
 
-                            const isEraser = e.pointerType === 'eraser' || e.buttons === 32 || (e.buttons & 2) === 2 || (e.buttons & 1 && e.pointerType === 'pen' && e.button === 5);
+                            const isEraser = e.pointerType === 'eraser' || e.buttons === 32 || (e.buttons & 2) === 2;
 
                             if (isEraser) {
                                 if (!eraseMode) {
