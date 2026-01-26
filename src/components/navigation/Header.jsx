@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Sidebar as SidebarIcon, Maximize2, Minimize2, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Menu, Sidebar as SidebarIcon, Maximize2, Minimize2, AlertTriangle, Eye, EyeOff, Pen } from 'lucide-react';
 
 export default function Header({
     isSidebarOpen,
@@ -57,6 +58,13 @@ export default function Header({
                         >
                             <Maximize2 size={14} /> Odaklan
                         </button>
+
+                        <Link
+                            to="/notebook"
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 hover:scale-105 whitespace-nowrap shrink-0"
+                        >
+                            <Pen size={14} /> Dijital Defter
+                        </Link>
 
                         {/* WAR ROOM BUTTON */}
                         <button

@@ -4,6 +4,7 @@ import { AppProvider } from './context/AppContext';
 import MainLayout from './layouts/MainLayout';
 import CoursePage from './pages/CoursePage';
 import HomePage from './pages/HomePage';
+import NotebookPage from './pages/NotebookPage';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -55,6 +56,7 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/course/:id" element={<CoursePage />} />
+              <Route path="/notebook" element={<NotebookPage />} />
               {/* <Route path="/war-room" element={<WarRoomPage />} /> */}
             </Routes>
           </MainLayout>
