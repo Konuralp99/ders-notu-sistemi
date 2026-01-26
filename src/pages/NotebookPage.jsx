@@ -10,6 +10,7 @@ export default function NotebookPage() {
     const [strokeColor, setStrokeColor] = useState('#000000');
     const [strokeWidth, setStrokeWidth] = useState(4);
     const [eraseMode, setEraseMode] = useState(false);
+    const [manualEraser, setManualEraser] = useState(false);
 
     // Canvas ref
     const canvasRef = useRef(null);
@@ -30,9 +31,6 @@ export default function NotebookPage() {
     // Load data into canvas when editor opens and canvas is ready
     useEffect(() => {
         if (view === 'editor' && currentNote?.data && canvasRef.current) {
-            // react-sketch-canvas loads paths asynchronously usually, but loadPaths returns a promise if needed
-            // However, we need to wait for ref.
-            // Timeout is a dirty hack but often needed if immediate loading fails
             setTimeout(() => {
                 canvasRef.current?.loadPaths(currentNote.data);
             }, 100);
@@ -42,18 +40,14 @@ export default function NotebookPage() {
     const handleSave = async () => {
         if (!canvasRef.current) return;
 
-        // Export paths (lightweight JSON)
         const paths = await canvasRef.current.exportPaths();
         const timestamp = Date.now();
 
         if (currentNote.id) {
-            // Update existing
             await db.drawings.update(currentNote.id, {
                 data: paths,
-                // optional: could also exportImage for thumbnail
             });
         } else {
-            // Create new
             const id = await db.drawings.add({
                 title: currentNote.title,
                 data: paths,
@@ -71,9 +65,18 @@ export default function NotebookPage() {
     };
 
     const toggleEraser = () => {
-        setEraseMode(!eraseMode);
-        // React Sketch Canvas uses eraseMode prop handling
-        canvasRef.current?.eraseMode(!eraseMode);
+        const newState = !eraseMode;
+        setEraseMode(newState);
+        setManualEraser(newState);
+        canvasRef.current?.eraseMode(newState);
+    };
+
+    const handlePenSelect = (color) => {
+        setStrokeColor(color);
+        setStrokeWidth(4);
+        setEraseMode(false);
+        setManualEraser(false);
+        canvasRef.current?.eraseMode(false);
     };
 
     return (
@@ -129,29 +132,32 @@ export default function NotebookPage() {
                     )}
                 </div>
             ) : (
-                // EDITOR VIEW
                 <div className="fixed inset-0 bg-white dark:bg-slate-950 flex flex-col z-50 animate-in slide-in-from-bottom-5">
-                    {/* Toolbar */}
                     <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
-                        <button onClick={() => setView('gallery')} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
-                            <ChevronLeft />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setView('gallery')} className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+                                <ChevronLeft />
+                            </button>
+                            <span className="text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 hidden md:block">
+                                S-Pen Pro Aktif 🖊️
+                            </span>
+                        </div>
 
                         <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
                             <button
-                                onClick={() => { setStrokeColor('#000000'); setStrokeWidth(4); setEraseMode(false); canvasRef.current?.eraseMode(false); }}
+                                onClick={() => handlePenSelect('#000000')}
                                 className={`p-2 rounded-md ${!eraseMode && strokeColor === '#000000' ? 'bg-white dark:bg-slate-700 shadow-sm' : ''}`}
                             >
                                 <Pen size={20} className="text-slate-900 dark:text-white" />
                             </button>
                             <button
-                                onClick={() => { setStrokeColor('#ef4444'); setStrokeWidth(4); setEraseMode(false); canvasRef.current?.eraseMode(false); }}
+                                onClick={() => handlePenSelect('#ef4444')}
                                 className={`w-9 h-9 rounded-md flex items-center justify-center ${!eraseMode && strokeColor === '#ef4444' ? 'bg-white dark:bg-slate-700 shadow-sm' : ''}`}
                             >
                                 <div className="w-4 h-4 rounded-full bg-red-500"></div>
                             </button>
                             <button
-                                onClick={() => { setStrokeColor('#3b82f6'); setStrokeWidth(4); setEraseMode(false); canvasRef.current?.eraseMode(false); }}
+                                onClick={() => handlePenSelect('#3b82f6')}
                                 className={`w-9 h-9 rounded-md flex items-center justify-center ${!eraseMode && strokeColor === '#3b82f6' ? 'bg-white dark:bg-slate-700 shadow-sm' : ''}`}
                             >
                                 <div className="w-4 h-4 rounded-full bg-blue-500"></div>
@@ -177,8 +183,6 @@ export default function NotebookPage() {
                         </div>
                     </div>
 
-                    {/* Canvas Area */}
-                    {/* Canvas Area */}
                     <div
                         className="flex-1 overflow-hidden relative cursor-crosshair touch-none bg-white"
                         onPointerDownCapture={(e) => {
@@ -187,24 +191,36 @@ export default function NotebookPage() {
                                 e.preventDefault();
                                 return;
                             }
-                            const isEraser = e.pointerType === 'eraser' || e.buttons === 32 || (e.buttons & 2) === 2;
+
+                            const isEraser = e.pointerType === 'eraser' || e.buttons === 32 || (e.buttons & 2) === 2 || (e.buttons & 1 && e.pointerType === 'pen' && e.button === 5);
+
                             if (isEraser) {
-                                setEraseMode(true);
-                                canvasRef.current?.eraseMode(true);
-                            } else if (eraseMode) {
-                                setEraseMode(false);
-                                canvasRef.current?.eraseMode(false);
+                                if (!eraseMode) {
+                                    setEraseMode(true);
+                                    canvasRef.current?.eraseMode(true);
+                                }
+                            } else {
+                                if (eraseMode && !manualEraser) {
+                                    setEraseMode(false);
+                                    canvasRef.current?.eraseMode(false);
+                                }
                             }
                         }}
                         onPointerMove={(e) => {
                             if (e.pointerType === 'touch') return;
-                            const isEraser = e.pointerType === 'eraser' || e.buttons === 32 || (e.buttons & 2) === 2;
-                            if (isEraser && !eraseMode) {
-                                setEraseMode(true);
-                                canvasRef.current?.eraseMode(true);
-                            } else if (!isEraser && eraseMode) {
-                                setEraseMode(false);
-                                canvasRef.current?.eraseMode(false);
+
+                            const isEraser = e.pointerType === 'eraser' || e.buttons === 32 || (e.buttons & 2) === 2 || (e.buttons & 1 && e.pointerType === 'pen' && e.button === 5);
+
+                            if (isEraser) {
+                                if (!eraseMode) {
+                                    setEraseMode(true);
+                                    canvasRef.current?.eraseMode(true);
+                                }
+                            } else {
+                                if (eraseMode && !manualEraser) {
+                                    setEraseMode(false);
+                                    canvasRef.current?.eraseMode(false);
+                                }
                             }
                         }}
                     >
